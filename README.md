@@ -53,10 +53,11 @@ public function render($request, Throwable $e)
                 ], 422);
             }
             if ($e instanceof \Illuminate\Database\QueryException){
+                $message = Str::between($e->getMessage(), '[7] ', ' (0x');
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Database error',
-                    'errors' => $e->getMessage()
+                    'errors' => $message
                 ], 500);
             }
             if ($e instanceof \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException){
@@ -71,7 +72,18 @@ public function render($request, Throwable $e)
                     'message' => $e->getMessage()
                 ], $e->getStatusCode());
             }
-
+            if ($e instanceof \ErrorException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+            if ($e instanceof \TypeError){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
         }
         return parent::render($request, $e);
     }
@@ -97,7 +109,7 @@ open postman and make request with url `http://localhost:8000/api/test` with met
 ```
 
 open postman and make request with url `http://localhost:8000/api/test` with method `POST`
-```bash
+```json
 {
     "status": "error",
     "message": "Method not allowed"

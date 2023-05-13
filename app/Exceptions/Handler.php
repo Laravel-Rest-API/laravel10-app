@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Support\Str;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -65,10 +66,11 @@ class Handler extends ExceptionHandler
                 ], 422);
             }
             if ($e instanceof \Illuminate\Database\QueryException){
+                $message = Str::between($e->getMessage(), '[7] ', ' (0x');
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Database error',
-                    'errors' => $e->getMessage()
+                    'errors' => $message
                 ], 500);
             }
             if ($e instanceof \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException){
@@ -83,7 +85,18 @@ class Handler extends ExceptionHandler
                     'message' => $e->getMessage()
                 ], $e->getStatusCode());
             }
-
+            if ($e instanceof \ErrorException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+            if ($e instanceof \TypeError){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage()
+                ], 500);
+            }
         }
         return parent::render($request, $e);
     }
