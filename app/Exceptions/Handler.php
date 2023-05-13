@@ -27,4 +27,64 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+    public function render($request, Throwable $e)
+    {
+        if ($request->expectsJson()){
+            if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException){
+                $modelClass = explode('\\', $e->getModel());
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => end($modelClass).' not found'
+                ], 404);
+            }
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'URL not found'
+                ], 404);
+            }
+            if ($e instanceof \Illuminate\Auth\AuthenticationException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthenticated'
+                ], 401);
+            }
+            if ($e instanceof \Illuminate\Auth\Access\AuthorizationException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthorized'
+                ], 403);
+            }
+            if ($e instanceof \Illuminate\Validation\ValidationException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Validation error',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            if ($e instanceof \Illuminate\Database\QueryException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Database error',
+                    'errors' => $e->getMessage()
+                ], 500);
+            }
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Method not allowed'
+                ], 405);
+            }
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage()
+                ], $e->getStatusCode());
+            }
+
+        }
+        return parent::render($request, $e);
+    }
 }

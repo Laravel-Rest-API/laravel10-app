@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -15,6 +16,11 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('/', function () {
     return response()->json(['message' => 'Successfully','data'=>['info'=>'Laravel API Version 1.0']], 200);
+});
+
+Route::get('/test', function () {
+    $user = User::findOrFail(1);
+    return response()->json(['message' => 'Successfully','data'=>$user], 200);
 });
 //Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //    return $request->user();

@@ -1,7 +1,7 @@
 
-# Laravel 10 - Laravel Telescope
+# Laravel 10 - Handle Exception
 
-This package for laravel 10, is a package for debugging and monitoring your application. Telescope provides insight into the requests coming into your application, exceptions, log entries, database queries, queued jobs, mail, notifications, cache operations, scheduled tasks, variable dumps and more. Telescope makes a wonderful companion to your local Laravel development environment.
+Make API with laravel 10 need to handle exception and show response with json format. This package will help you to handle exception and show response with json format.
 
 
 
@@ -9,41 +9,100 @@ This package for laravel 10, is a package for debugging and monitoring your appl
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
-
-## Installation
-
-How to setup laravel 10 - laravel telescope
-
-```bash
-  composer require laravel/telescope
-  php artisan telescope:install
-  php artisan migrate
-
-```
 ## Configuration
 
-To run this package, you will need to add the following environment variables to your .env file
+To make this response, you can follow the steps below:
 
-`TELESCOPE_PATH` //set the path to telescope example: telescope
+edit file `app/Exceptions/Handler.php` and add the following code
 
-otherwise you can use the default path. For details, you can read the documentation at [Laravel Telescope](https://laravel.com/docs/8.x/telescope)
+```php
+public function render($request, Throwable $e)
+    {
+        if ($request->expectsJson()){
+            if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException){
+                $modelClass = explode('\\', $e->getModel());
 
-## Running Tests
+                return response()->json([
+                    'status' => 'error',
+                    'message' => end($modelClass).' not found'
+                ], 404);
+            }
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'URL not found'
+                ], 404);
+            }
+            if ($e instanceof \Illuminate\Auth\AuthenticationException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthenticated'
+                ], 401);
+            }
+            if ($e instanceof \Illuminate\Auth\Access\AuthorizationException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthorized'
+                ], 403);
+            }
+            if ($e instanceof \Illuminate\Validation\ValidationException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Validation error',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            if ($e instanceof \Illuminate\Database\QueryException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Database error',
+                    'errors' => $e->getMessage()
+                ], 500);
+            }
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Method not allowed'
+                ], 405);
+            }
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpException){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage()
+                ], $e->getStatusCode());
+            }
 
-To run tests, run the following command
+        }
+        return parent::render($request, $e);
+    }
+```
+
+You can add other exception what you need.
+
+## Test
+You can test this package with postman or other tools.
 
 ```bash
-  php artisan serve
+php artisan serve
 ```
-and then open your browser and type the url
 
+## Result
+
+open postman and make request with url `http://localhost:8000/api/test` with method `GET`
+```json
+{
+    "status": "error",
+    "message": "User not found"
+}
+```
+
+open postman and make request with url `http://localhost:8000/api/test` with method `POST`
 ```bash
-  http://localhost:8000/api/telescope
+{
+    "status": "error",
+    "message": "Method not allowed"
+}
 ```
-
-## Screenshots
-
-![App Screenshot](https://i.ibb.co/vVm9RjS/image.png)
 
 ## License
 
