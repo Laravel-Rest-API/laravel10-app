@@ -38,7 +38,7 @@ To run tests, run the following command
 and then open your browser and type the url
 
 ```bash
-  http://localhost:8000/telescope
+  http://localhost:8000/api/telescope
 ```
 
 ## Screenshots
