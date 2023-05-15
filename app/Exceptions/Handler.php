@@ -85,10 +85,12 @@ class Handler extends ExceptionHandler
                     'message' => $e->getMessage()
                 ], $e->getStatusCode());
             }
-            if ($e instanceof \ErrorException){
+            if ($e instanceof \Error){
+                $modelClass = explode('\\', $e->getMessage());
+
                 return response()->json([
                     'status' => 'error',
-                    'message' => $e->getMessage()
+                    'message' => str_replace('"', '', end($modelClass))
                 ], 500);
             }
             if ($e instanceof \TypeError){
