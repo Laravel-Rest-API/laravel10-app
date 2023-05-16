@@ -22,6 +22,10 @@ Route::get('/test', function () {
     $user = User::findOrFail(1);
     return response()->json(['message' => 'Successfully','data'=>$user], 200);
 });
+
+Route::prefix('v1')->group(function () {
+    Route::apiResource('users', \App\Http\Controllers\Api\V1\UserController::class);
+});
 //Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //    return $request->user();
 //});
