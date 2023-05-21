@@ -6,7 +6,6 @@ trait PaginationTrait
 {
     public function paginationInformation($request, $paginated, $default)
     {
-//        dd($paginated->total());
         return [
             'meta' => [
                 'total' => $this->total(),

@@ -20,7 +20,7 @@ class UserController extends Controller
     public function index()
     {
         $user = User::orderByDesc('id')->paginate(10);
-        $userTransform = (new UserCollection($user))->response()->setStatusCode(Response::HTTP_OK);
+        $userTransform = (new UserCollection($user,'Show List User'))->response()->setStatusCode(Response::HTTP_OK);
         return $userTransform;
     }
 
@@ -45,7 +45,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return (new UserResource($user))->response()->setStatusCode(Response::HTTP_OK);
+        return (new UserResource($user,'Details User Successfully'))->response()->setStatusCode(Response::HTTP_OK);
     }
 
     /**
