@@ -15,22 +15,21 @@ class UserCollection extends ResourceCollection
      */
     use PaginationTrait;
 
-    public function __construct($resource, $message = 'Successfully')
+    public function __construct($collection, $response)
     {
-        parent::__construct($resource);
-        $this->message = $message;
+        parent::__construct($collection);
+        $this->response = $response;
     }
     public function toArray(Request $request): array
     {
-        return [
-            'message' => $this->message,
-            'data' => $this->resource->map(function ($item) {
+        return array_merge($this->response,[
+            'data' => $this->collection->map(function ($item) {
                 return [
                     'id' => $item->id,
                     'name' => $item->name,
                     'email' => $item->email,
                 ];
             }),
-        ];
+        ]);
     }
 }

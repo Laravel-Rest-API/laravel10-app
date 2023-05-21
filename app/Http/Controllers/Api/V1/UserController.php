@@ -3,14 +3,12 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\SuccessCollection as success;
 use App\Http\Resources\UserCollection;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Responses\UserResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 
 class UserController extends Controller
 {
@@ -20,8 +18,7 @@ class UserController extends Controller
     public function index()
     {
         $user = User::orderByDesc('id')->paginate(10);
-        $userTransform = (new UserCollection($user,'Show List User'))->response()->setStatusCode(Response::HTTP_OK);
-        return $userTransform;
+        return (new UserCollection($user, UserResponse::SUCCESS))->response()->setStatusCode(Response::HTTP_OK);
     }
 
     /**
@@ -37,7 +34,13 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $user = User::create([
+            'name'=> fake()->name,
+            'email' => fake()->email,
+            'password' => bcrypt('password')
+        ]);
+
+        return (new UserResource($user,UserResponse::CREATED))->response()->setStatusCode(Response::HTTP_CREATED);
     }
 
     /**
@@ -45,7 +48,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return (new UserResource($user,'Details User Successfully'))->response()->setStatusCode(Response::HTTP_OK);
+        return (new UserResource($user, UserResponse::SUCCESS))->response()->setStatusCode(Response::HTTP_OK);
     }
 
     /**
@@ -59,16 +62,21 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(User $user)
     {
-        //
+        $user->update([
+            'name' => fake()->name
+        ]);
+        $user->save();
+        return (new UserResource($user,UserResponse::UPDATED))->response()->setStatusCode(Response::HTTP_OK);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(User $user)
     {
-        //
+        $user->delete();
+        return (new UserResource($user,UserResponse::DELETED))->response()->setStatusCode(Response::HTTP_OK);
     }
 }
