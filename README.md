@@ -1,5 +1,5 @@
 
-# Laravel 10 - Transform Data
+# Laravel 10 - Response Code & Message Config
 
 Make API with laravel 10 need to make response with json format. This package will help you to make response with json format.
 
@@ -9,97 +9,80 @@ Make API with laravel 10 need to make response with json format. This package wi
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
-## Requirements
-
-To make this response, you can need to make file:
-1. UserCollection
-
-note: you can make this file with command `php artisan make:resource UserCollection`
-2. UserResource
-
-note: you can make this file with command `php artisan make:resource UserResource`
-3. PaginationTrait
-
-note: you can make this file manually in `app/Traits/PaginationTrait`
-
 ## Configuration
 
-### 1. UserCollection
+### 1. Make List Response Code & Message
+make file `app/Responses/UserResponse.php` and add the following code
+
+```php
+class UserResponse
+{
+    public const SUCCESS = [
+        'code' => 200,
+        'message' => 'User Get Successfully',
+    ];
+
+    public const CREATED = [
+        'code' => 201,
+        'message' => 'User Created Successfully',
+    ];
+
+    public const UPDATED = [
+        'code' => 200,
+        'message' => 'User Updated Successfully',
+    ];
+
+    public const DELETED = [
+        'code' => 200,
+        'message' => 'User Deleted Successfully',
+    ];
+}
+```
+
+### 2. Edit UserCollection
 
 edit file `app/Resources/UserCollection.php` and add the following code
 
 ```php
-use PaginationTrait;
+    use PaginationTrait;
 
-public function __construct($resource, $message = 'Successfully')
+    public function __construct($collection, $response) //new this
     {
-        parent::__construct($resource);
-        $this->message = $message;
+        parent::__construct($collection);
+        $this->response = $response; //new this
     }
     public function toArray(Request $request): array
     {
-        return [
-            'message' => $this->message,
-            'data' => $this->resource->map(function ($item) {
+        return array_merge($this->response,[  //new this
+            'data' => $this->collection->map(function ($item) {
                 return [
                     'id' => $item->id,
                     'name' => $item->name,
                     'email' => $item->email,
                 ];
             }),
-        ];
+        ]);
     }
 ```
-### 2. PaginationTrait
-make file `app/Traits/PaginationTrait.php` and add the following code
 
-```php
-<?php
-
-namespace App\Traits;
-
-trait PaginationTrait
-{
-    public function paginationInformation($request, $paginated, $default)
-    {
-        return [
-            'meta' => [
-                'total' => $this->total(),
-                'count' => $this->count(),
-                'per_page' => $this->perPage(),
-                'current_page' => $this->currentPage(),
-                'total_pages' => $this->lastPage(),
-                'links' => [
-                    'previous' => $this->previousPageUrl(),
-                    'next' => $this->nextPageUrl(),
-                ],
-            ]
-        ];
-    }
-}
-
-```
-this function will call in `UserCollection` file when you make pagination. You can focus in `use PaginationTrait` in UserCollection file.
-
-### 3. UserResource
+### 3. Edit UserResource
 edit file `app/Resources/UserResource.php` and add the following code
 
 ```php
-public function __construct($resource,$message='Successfully')
+    public function __construct($resource, $response) //new this
     {
         parent::__construct($resource);
-        $this->message = $message;
+        $this->response = $response; //new this
     }
     public function toArray(Request $request): array
     {
-        return [
-            'message'=>$this->message,
+        return array_merge($this->response,[ //new this
             'data' => [
                 'id' => $this->id,
                 'name' => $this->name,
                 'email' => $this->email
             ]
-        ];
+        ]);
     }
 ```
 
@@ -109,10 +92,10 @@ For know how use resource & collection and show displayed data, you can follow t
 edit file `app/Http/Controllers/UserController.php` and add the following code
 
 ```php
-public function index()
+    public function index()
     {
         $user = User::orderByDesc('id')->paginate(10);
-        $userTransform = (new UserCollection($user,'Show List User'))->response()->setStatusCode(Response::HTTP_OK);
+        $userTransform = (new UserCollection($user,UserResponse::SUCCESS))->response()->setStatusCode(Response::HTTP_OK);
         return $userTransform;
     }
 ```
@@ -120,7 +103,8 @@ access url in `localhost:8000/api/v1/users`
 ### Result
 ```json
 {
-    "message": "Show List User",
+    "code": 200,
+    "message": "User Get Successfully",
     "data": [
         {
             "id": 100,
@@ -192,14 +176,15 @@ edit file `app/Http/Controllers/UserController.php` and add the following code
 ```php
 public function show(User $user)
     {
-        return (new UserResource($user))->response()->setStatusCode(Response::HTTP_OK);
+        return (new UserResource($user,UserResponse::SUCCESS))->response()->setStatusCode(Response::HTTP_OK);
     }
 ```
 access url `localhost:8000/api/v1/users/1`
 ### Result
 ```json
 {
-    "message": "Details User Successfully",
+    "code": 200,
+    "message": "User Get Successfully",
     "data": {
         "id": 1,
         "name": "Joannie Ziemann",
