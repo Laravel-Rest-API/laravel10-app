@@ -12,12 +12,20 @@ class UserResource extends JsonResource
      *
      * @return array<string, mixed>
      */
+    public function __construct($resource,$message='Successfully')
+    {
+        parent::__construct($resource);
+        $this->message = $message;
+    }
     public function toArray(Request $request): array
     {
         return [
-            'id'=>$this->id,
-            'name'=>$this->name,
-            'email'=>$this->email
+            'message'=>$this->message,
+            'data' => [
+                'id' => $this->id,
+                'name' => $this->name,
+                'email' => $this->email
+            ]
         ];
     }
 }

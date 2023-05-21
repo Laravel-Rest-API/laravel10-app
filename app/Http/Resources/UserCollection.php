@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Traits\PaginationTrait;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
@@ -12,26 +13,24 @@ class UserCollection extends ResourceCollection
      *
      * @return array<int|string, mixed>
      */
+    use PaginationTrait;
+
+    public function __construct($resource, $message = 'Successfully')
+    {
+        parent::__construct($resource);
+        $this->message = $message;
+    }
     public function toArray(Request $request): array
     {
         return [
-            'data' => $this->collection,
-        ];
-    }
-    public function paginationInformation($request,$paginated,$default)
-    {
-        return [
-            'meta'=>[
-                'total'=>$this->total(),
-                'count'=>$this->count(),
-                'per_page'=>$this->perPage(),
-                'current_page'=>$this->currentPage(),
-                'total_pages'=>$this->lastPage(),
-                'links'=>[
-                    'previous'=>$this->previousPageUrl(),
-                    'next'=>$this->nextPageUrl()
-                ]
-            ]
+            'message' => $this->message,
+            'data' => $this->resource->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'email' => $item->email,
+                ];
+            }),
         ];
     }
 }

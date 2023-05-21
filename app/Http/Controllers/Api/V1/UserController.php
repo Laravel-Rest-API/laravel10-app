@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\SuccessCollection as success;
 use App\Http\Resources\UserCollection;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class UserController extends Controller
 {
@@ -15,7 +19,9 @@ class UserController extends Controller
      */
     public function index()
     {
-        return new UserCollection(User::orderByDesc('id')->paginate(10));
+        $user = User::orderByDesc('id')->paginate(10);
+        $userTransform = (new UserCollection($user))->response()->setStatusCode(Response::HTTP_OK);
+        return $userTransform;
     }
 
     /**
